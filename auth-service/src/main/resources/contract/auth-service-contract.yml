@@ -1,0 +1,125 @@
+openapi: 3.0.1
+info:
+  title: Authentication API
+  description: API for user registration, authentication, and token validation.
+  version: 1.0.0
+servers:
+  - url: localhost:8081/api/auth
+    description: auth-service
+
+paths:
+  /signup:
+    post:
+      tags:
+        - auth
+      summary: User registration
+      operationId: register
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '200':
+          description: User successfully registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthenticationResponse'
+  /authenticate:
+    post:
+      tags:
+        - auth
+      summary: User authentication
+      operationId: authenticate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthenticationRequest'
+      responses:
+        '200':
+          description: User successfully authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthenticationResponse'
+  /validate:
+    post:
+      tags:
+        - auth
+      summary: Validate token
+      operationId: validateToken
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ValidateTokenRequest'
+      responses:
+        '200':
+          description: Token validation result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidateTokenResponse'
+
+components:
+  schemas:
+    RegisterRequest:
+      type: object
+      properties:
+        password:
+          type: string
+          format: password
+          example: "password123"
+        email:
+          type: string
+          format: email
+          example: "john.doe@example.com"
+      required:
+        - password
+        - email
+
+    AuthenticationRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          example: "john_doe"
+        password:
+          type: string
+          format: password
+          example: "password123"
+      required:
+        - username
+        - password
+
+    AuthenticationResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+      required:
+        - token
+
+    ValidateTokenRequest:
+      type: object
+      properties:
+        token:
+          type: string
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+      required:
+        - token
+
+    ValidateTokenResponse:
+      type: object
+      properties:
+        isValid:
+          type: boolean
+          example: true
+      required:
+        - isValid

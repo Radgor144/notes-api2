@@ -1,0 +1,62 @@
+services:
+
+  postgres-db:
+    image: postgres
+    environment:
+      POSTGRES_DB: notes
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5434:5432"
+
+  postgres-db-auth:
+    image: postgres
+    environment:
+      POSTGRES_DB: auth
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5433:5432"
+
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5051:80"
+
+  notes-api:
+    image: notes-api:latest
+    build:
+      context: ../notes-api
+    ports:
+      - "8082:8082"
+    environment:
+      POSTGRES_DB: notes
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    depends_on:
+      - postgres-db
+
+  auth-service:
+    image: auth-service:latest
+    build:
+      context: ../auth-service
+    ports:
+      - "8081:8081"
+    environment:
+      POSTGRES_DB: auth
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    depends_on:
+      - postgres-db-auth
+
+  frontend:
+    build:
+      context: ../frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - auth-service
+      - notes-api

@@ -1,0 +1,238 @@
+openapi: 3.0.0
+info:
+  version: 1.0.0
+  title: Notes API
+  description: API for managing notes in a Spring service, with pagination and sorting for listing notes.
+
+paths:
+  /notes:
+    get:
+      summary: Get all notes
+      description: Retrieves a paginated list of notes with optional sorting.
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+            description: Page number to retrieve (zero-based). Default is 0.
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+            description: Number of notes per page. Default is 10.
+        - name: sort
+          in: query
+          required: false
+          schema:
+            type: string
+            default: "createdAt"
+            description: Field to sort by (e.g., `title`, `createdAt`). Default is `createdAt`.
+            example: createdAt
+        - name: direction
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: "asc"
+            description: Sort direction, either ascending or descending. Default is `asc`.
+            example: asc
+        - name: Authorization
+          in: header
+          required: true
+          schema:
+            type: string
+            description: Bearer token for authorization (e.g., `Bearer <token>`).
+      responses:
+        '200':
+          description: A paginated and sorted list of notes.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotePage'
+
+    post:
+      summary: Create a new note
+      description: Creates a new note with the provided title and content.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NoteCreateRequest'
+      responses:
+        '201':
+          description: Note created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Note'
+
+  /notes/{id}:
+    get:
+      summary: Get a specific note
+      description: Retrieves a note by its ID.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Note found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Note'
+        '404':
+          description: Note not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    put:
+      summary: Update a specific note
+      description: Updates an existing note by its ID.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NoteUpdateRequest'
+      responses:
+        '200':
+          description: Note updated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Note'
+        '404':
+          description: Note not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      summary: Delete a specific note
+      description: Deletes a note by its ID.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Note deleted successfully.
+        '404':
+          description: Note not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    Note:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: 3e7a196f-d73e-4a6f-b823-804a8c9e9c54
+        title:
+          type: string
+          example: Sample Note
+        content:
+          type: string
+          example: This is the content of the sample note.
+        createdAt:
+          type: string
+          format: date-time
+          example: 2023-01-01T12:00:00Z
+
+    NoteCreateRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          example: New Note
+        content:
+          type: string
+          example: Content of the new note.
+
+    NoteUpdateRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          example: Updated Note Title
+        content:
+          type: string
+          example: Updated content of the note.
+
+    NotePage:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/Note'
+        page:
+          type: integer
+          example: 0
+        size:
+          type: integer
+          example: 10
+        totalElements:
+          type: integer
+          format: int64
+          example: 50
+        totalPages:
+          type: integer
+          example: 5
+        last:
+          type: boolean
+          example: false
+
+    ErrorResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "Invalid input"
+        reason:
+          type: string
+          example: "The provided note ID does not exist"
+        codeHTTP:
+          type: integer
+          format: int32
+          example: 404
+      required:
+        - message
+        - reason
+        - codeHTTP
+      description: |
+        Represents an error response.
+
+        **Constructor:**
+        - `ErrorResponse(String message, String reason, int codeHTTP)`:
+          - `message`: A description of the error.
+          - `reason`: The reason for the error.
+          - `codeHTTP`: The HTTP status code related to the error.
