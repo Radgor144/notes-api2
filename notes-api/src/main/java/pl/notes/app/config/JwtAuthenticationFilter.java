@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
@@ -19,6 +20,7 @@ import pl.notes.app.auth.AuthClient;
 import java.io.IOException;
 import java.util.Optional;
 
+@Slf4j
 @RequiredArgsConstructor
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -49,7 +51,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     private Boolean isTokenValid(String token) {
-        ResponseEntity<ValidateTokenResponse> validateTokenResponseResponseEntity = authClient.validateToken(new ValidateTokenRequest(token));
+        ResponseEntity<ValidateTokenResponse> validateTokenResponseResponseEntity;
+        try{
+            validateTokenResponseResponseEntity = authClient.validateToken(new ValidateTokenRequest(token));
+        } catch (Exception e) {
+            log.error(String.valueOf(e));
+            throw new RuntimeException(e);
+        }
         return Optional.ofNullable(validateTokenResponseResponseEntity.getBody())
                 .map(ValidateTokenResponse::getIsValid)
                 .orElse(false);
